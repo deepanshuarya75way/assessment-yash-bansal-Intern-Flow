@@ -2,6 +2,16 @@
 
 **InternFlow** is a feature-rich, full-stack Internship Management and Growth Platform designed to streamline the lifecycle of internships. It connects interns, mentors, and placement coordinators through interactive dashboards, project tracking, real-time collaboration, and developer stats integration.
 
+---
+
+## 🌐 Live Deployment Links
+
+- 🎨 **Frontend Application (Vercel)**: [https://intern-flow-pnqh.vercel.app](https://intern-flow-pnqh.vercel.app)
+- ⚙️ **Backend REST API (Vercel)**: [https://intern-flow-steel.vercel.app](https://intern-flow-steel.vercel.app)
+- 🐘 **Database**: PostgreSQL (Hosted on [Neon.tech](https://neon.tech))
+
+---
+
 ## 🎬 Demo Video
 
 [![InternFlow Demo - Watch on YouTube](https://img.youtube.com/vi/ZoWRuA7NKjY/maxresdefault.jpg)](https://youtu.be/ZoWRuA7NKjY)
@@ -17,7 +27,7 @@
 - **Growth Tracker:** Track developer skills progression and map milestones.
 
 ### 2. Task & Project Management
-- **Kanban Board:** Drag-and-drop task workflow system powered by `@hello-pangea/dnd` (`react-beautiful-dnd`).
+- **Kanban Board:** Drag-and-drop task workflow system powered by `@hello-pangea/dnd`.
 - **Sprint Management:** Group and track milestones within structured sprints.
 
 ### 3. Career & Placement Assistance
@@ -25,15 +35,15 @@
 - **Placement Dashboard:** Manage and coordinate job listings, internship applications, and interviewer reviews.
 
 ### 4. Interactive Analytics & Communication
-- **Data Visualization:** Beautiful charts analyzing performance, sprint velocities, and task progress using React and `Recharts` (fully optimized with `ResponsiveContainer`).
+- **Data Visualization:** Charts analyzing performance, sprint velocities, and task progress using React and `Recharts`.
 - **Real-Time Collaboration:** Instant feedback loops, comment systems, and live notifications driven by `Socket.io`.
 - **System Actions:** Integrated email alerts utilizing `Nodemailer`.
-- **Data Export:** Export intern records and evaluation data directly into spreadsheet-friendly formats (CSV via `json2csv`).
+- **Data Export:** Export intern records and evaluation data into spreadsheet formats (CSV via `json2csv`).
 
 ### 5. Enterprise-Grade Security
-- **Role-Based Auth:** Secure authentication using JWT and cryptographically hashed passwords (`bcryptjs`).
+- **Role-Based Auth (RBAC):** Secure authentication using JWT and cryptographically hashed passwords (`bcryptjs`).
 - **Resilience:** Express Rate Limiters block auth route brute-forcing.
-- **Database Pooling:** Optimized MySQL backend connection pools with foreign key index optimization to support fast `JOIN` query execution.
+- **Cloud Database Pooling:** PostgreSQL connection pool (`pg`) with automatic `?` to `$1` query wrapping and SSL encryption.
 - **Security Headers:** Hardened Express security using `helmet` and `cors`.
 
 ---
@@ -47,14 +57,16 @@
 - **Charts:** Recharts
 - **Drag & Drop:** `@hello-pangea/dnd`
 - **Real-Time Gateway:** Socket.io Client
+- **Deployment:** Vercel
 
 ### Backend (`/server`)
 - **Runtime:** Node.js (Express.js)
-- **Database:** MySQL (using `mysql2` driver with database pool configurations)
+- **Database:** PostgreSQL (using `pg` driver with Neon cloud PostgreSQL)
 - **Real-Time Server:** Socket.io
 - **PDF Generation:** PDFKit
 - **Validation:** Joi (Schema Validation)
 - **Logger:** Winston & Morgan
+- **Deployment:** Vercel / Render
 
 ---
 
@@ -69,16 +81,16 @@
 │   │   ├── pages/          # Full page views (Analytics, Auth, Dashboard, etc.)
 │   │   ├── store/          # Redux slices
 │   │   └── theme/          # Custom MUI styles
-│   └── vercel.json         # Routing configuration for Vercel
+│   └── vercel.json         # Single Page App routing configuration for Vercel
 │
 ├── server/                 # Backend Node Express application
 │   ├── src/
-│   │   ├── config/         # Server configurations
-│   │   ├── database/       # Migrations and Seeds
+│   │   ├── config/         # Server & PostgreSQL database connection adapter
+│   │   ├── database/       # PostgreSQL Migrations and Seeds
 │   │   ├── middleware/     # Security, rate limiter, & error-handling middleware
 │   │   ├── modules/        # Module-based server controllers & services
-│   │   └── server.js       # Main server entrance
-│   └── render.yaml         # Deployment blueprint for Render.com
+│   │   └── server.js       # Main server entrypoint
+│   └── vercel.json         # Vercel serverless deployment configuration
 │
 └── DEPLOYMENT.md           # In-depth Deployment & Operations guide
 ```
@@ -89,34 +101,33 @@
 
 ### Prerequisites
 - Node.js (v18+)
-- MySQL instance
+- PostgreSQL instance (Local or [Neon.tech](https://neon.tech) cloud PostgreSQL)
 
 ### Setup Backend
 ```bash
 cd server
-cp .env.example .env     # Fill in your credentials
+cp .env.example .env     # Fill in your DATABASE_URL and JWT credentials
 npm install
-npm run migrate
-npm run seed
-npm run dev
+npm run migrate          # Execute PostgreSQL migrations
+npm run seed             # Seed initial skills and data
+npm run dev              # Run server locally
 ```
 
 ### Setup Frontend
 ```bash
 cd client
-cp .env.example .env     # Fill in your API URL
+cp .env.example .env     # Set VITE_API_URL=http://localhost:5000/api/v1
 npm install
-npm run dev
+npm run dev              # Start Vite dev server
 ```
 
 ---
 
-## 🌐 Deployment
+## 🌐 Deployment Overview
 
-- **Frontend** → [Vercel](https://vercel.com) — Root Dir: `client`, Build: `npm run build`
-- **Backend** → [Render](https://render.com) — Root Dir: `server`, Start: `npm start`
-
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for the full guide.
+- **Frontend** → [Vercel](https://vercel.com) — Root Directory: `client`
+- **Backend** → [Vercel](https://vercel.com) / [Render](https://render.com) — Root Directory: `server`
+- **Database** → [Neon PostgreSQL](https://neon.tech)
 
 ---
 
