@@ -32,22 +32,22 @@ const Sidebar = () => {
   
   const filteredMenuItems = menuItems.filter(item => {
     if (isAdmin) {
-      // Admins see all items except Analytics
-      return item.text !== 'Analytics';
+      // Admins have access to ALL modules
+      return true;
     }
-    if (roleName === 'student') {
+    if (roleName === 'student' || roleName === 'intern') {
       // Interns see Dashboard, Projects, My Tasks, Internship, Analytics, and Placement
       return ['Dashboard', 'Projects', 'My Tasks', 'Internship', 'Analytics', 'Placement'].includes(item.text);
     }
     if (roleName === 'team_lead') {
-      // Team leads see Dashboard, Projects, and My Tasks
-      return ['Dashboard', 'Projects', 'My Tasks'].includes(item.text);
+      // Team leads see Dashboard, Projects, My Tasks, and Reports
+      return ['Dashboard', 'Projects', 'My Tasks', 'Reports'].includes(item.text);
     }
     if (roleName === 'mentor') {
-      // Mentors see Dashboard, Projects, My Tasks, Internship, Reports, and Analytics
-      return ['Dashboard', 'Projects', 'My Tasks', 'Internship', 'Reports', 'Analytics'].includes(item.text);
+      // Mentors see Dashboard, Projects, My Tasks, Internship, Analytics, and Reports
+      return ['Dashboard', 'Projects', 'My Tasks', 'Internship', 'Analytics', 'Reports'].includes(item.text);
     }
-    if (roleName === 'placement_coordinator') {
+    if (roleName === 'placement_coordinator' || roleName === 'coordinator') {
       // Coordinators see Dashboard, Projects, Internship, Analytics, Placement, and Reports
       return ['Dashboard', 'Projects', 'Internship', 'Analytics', 'Placement', 'Reports'].includes(item.text);
     }

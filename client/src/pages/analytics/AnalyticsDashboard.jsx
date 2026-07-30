@@ -110,55 +110,67 @@ const AnalyticsDashboard = () => {
 
       <Grid container spacing={4}>
           <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3, borderRadius: 3, height: 400 }}>
+              <Paper sx={{ p: 3, borderRadius: 3, minHeight: 400, display: 'flex', flexDirection: 'column' }}>
                   <Typography variant="h6" fontWeight="bold" mb={2}>Task Distribution</Typography>
-                  <ResponsiveContainer width="100%" height="85%">
-                    <PieChart>
-                        <Pie data={taskChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
-                            {taskChartData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  {taskChartData.length > 0 ? (
+                      <Box sx={{ width: '100%', height: 320 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                              <Pie data={taskChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, value }) => `${name}: ${value}`}>
+                                  {taskChartData.map((entry, index) => (
+                                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                  ))}
+                              </Pie>
+                              <Tooltip />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </Box>
+                  ) : (
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1 }}>
+                          <Typography color="text.secondary">No task distribution data available.</Typography>
+                      </Box>
+                  )}
               </Paper>
           </Grid>
           
           <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3, borderRadius: 3, height: 400 }}>
+              <Paper sx={{ p: 3, borderRadius: 3, minHeight: 400, display: 'flex', flexDirection: 'column' }}>
                   <Typography variant="h6" fontWeight="bold" mb={2}>
                       {isStaff ? 'Top Intern Skills' : 'Skill Proficiency'}
                   </Typography>
                   {skillChartData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="85%">
-                        <BarChart data={skillChartData}>
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#8884d8" radius={[4, 4, 0, 0]} name={isStaff ? 'Number of Interns' : 'Proficiency (%)'} />
-                        </BarChart>
-                      </ResponsiveContainer>
+                      <Box sx={{ width: '100%', height: 320 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={skillChartData} margin={{ top: 10, right: 20, left: 0, bottom: 40 }}>
+                              <XAxis dataKey="name" interval={0} angle={-25} textAnchor="end" tick={{ fontSize: 11 }} />
+                              <YAxis />
+                              <Tooltip />
+                              <Bar dataKey="value" fill="#6366F1" radius={[6, 6, 0, 0]} name={isStaff ? 'Number of Interns' : 'Proficiency (%)'} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </Box>
                   ) : (
-                      <Typography color="text.secondary" sx={{ textAlign: 'center', mt: 10 }}>
-                          No skill proficiency data available.
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1 }}>
+                          <Typography color="text.secondary">No skill proficiency data available.</Typography>
+                      </Box>
                   )}
               </Paper>
           </Grid>
           
           {internProgress.length > 0 && (
           <Grid item xs={12}>
-              <Paper sx={{ p: 3, borderRadius: 3, height: 400 }}>
+              <Paper sx={{ p: 3, borderRadius: 3, minHeight: 420 }}>
                   <Typography variant="h6" fontWeight="bold" mb={2}>Intern Task Completion Progress</Typography>
-                  <ResponsiveContainer width="100%" height="85%">
-                    <BarChart data={internProgress}>
-                        <XAxis dataKey="name" tick={{fontSize: 12}} />
-                        <YAxis domain={[0, 100]} label={{ value: 'Progress (%)', angle: -90, position: 'insideLeft' }} />
-                        <Tooltip />
-                        <Bar dataKey="progressScore" fill="#34D399" radius={[4, 4, 0, 0]} name="Progress (%)" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <Box sx={{ width: '100%', height: 340 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={internProgress} margin={{ top: 20, right: 30, left: 10, bottom: 50 }}>
+                          <XAxis dataKey="name" tick={{ fontSize: 12 }} interval={0} angle={-25} textAnchor="end" />
+                          <YAxis domain={[0, 100]} />
+                          <Tooltip />
+                          <Bar dataKey="progressScore" fill="#34D399" radius={[6, 6, 0, 0]} name="Progress (%)" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </Box>
               </Paper>
           </Grid>
           )}
