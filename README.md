@@ -12,14 +12,6 @@
 
 ---
 
-## 🎬 Demo Video
-
-[![InternFlow Demo - Watch on YouTube](https://img.youtube.com/vi/ZoWRuA7NKjY/maxresdefault.jpg)](https://youtu.be/ZoWRuA7NKjY)
-
-> 🎬 *Click the thumbnail above to watch the full InternFlow demo on YouTube.*
-
----
-
 ## 🌟 Key Features
 
 ### 1. Developer Portfolio & GitHub Integration
