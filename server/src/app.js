@@ -19,7 +19,15 @@ app.use(morganMiddleware);
 app.use(generalLimiter);
 
 
-// Health check
+// Health & Status checks
+app.get('/', (req, res) => {
+    res.status(200).json({
+        name: 'InternFlow API',
+        status: 'UP',
+        message: 'InternFlow Backend Server is running with PostgreSQL'
+    });
+});
+
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'UP' });
 });
