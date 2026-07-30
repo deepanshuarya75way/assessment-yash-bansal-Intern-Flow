@@ -83,14 +83,20 @@ const AnalyticsDashboard = () => {
   if (loading) return <LoadingSpinner />;
 
   // Transform data for charts
-  const taskChartData = data?.tasks_distribution?.map(t => ({ name: t.status, value: t.count })) || [];
+  const taskChartData = data?.tasks_distribution?.map(t => ({
+    name: (t.status || 'unknown').replace('_', ' ').toUpperCase(),
+    value: Number(t.count || t.value || 0)
+  })).filter(t => t.value > 0) || [];
   
   const role = user?.role || user?.role_name || '';
   const isStaff = ['admin', 'super_admin', 'mentor', 'placement_coordinator', 'team_lead'].includes(role.toLowerCase().replace(' ', '_'));
 
   let skillChartData = [];
   if (isStaff && data?.skills_distribution) {
-      skillChartData = data.skills_distribution.map(s => ({ name: s.name, value: s.count }));
+      skillChartData = data.skills_distribution.map(s => ({
+        name: s.name,
+        value: Number(s.count || s.value || 0)
+      })).filter(s => s.value > 0);
   } else if (!isStaff && data?.skills) {
       skillChartData = data.skills.map(s => ({ 
           name: s.name, 

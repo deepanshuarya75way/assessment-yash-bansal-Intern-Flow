@@ -21,11 +21,11 @@ export const getSystemOverview = async () => {
     `);
 
     return {
-        users: userCount[0].count,
-        projects: projectCount[0].count,
-        internships: internshipCount[0].count,
-        tasks_distribution: tasks,
-        skills_distribution: globalSkills
+        users: Number(userCount[0]?.count || 0),
+        projects: Number(projectCount[0]?.count || 0),
+        internships: Number(internshipCount[0]?.count || 0),
+        tasks_distribution: tasks.map(t => ({ status: t.status, count: Number(t.count) })),
+        skills_distribution: globalSkills.map(s => ({ name: s.name, count: Number(s.count) }))
     };
 };
 
@@ -47,14 +47,13 @@ export const getUserAnalytics = async (userId) => {
 
     return {
         skills,
-        tasks_distribution: tasks,
+        tasks_distribution: tasks.map(t => ({ status: t.status, count: Number(t.count) })),
         mock_interviews: interviews
     };
 };
 
 export const getInternProgress = async (userId, role) => {
     let interns = [];
-    // Admins and coordinators see all interns; mentors also see all interns for overview
     if (role === 'admin' || role === 'super_admin' || role === 'placement_coordinator' || role === 'mentor' || role === 'team_lead') {
         const [rows] = await pool.query(`SELECT id, first_name, last_name, department FROM users WHERE role_id = 3`);
         interns = rows;
@@ -68,8 +67,9 @@ export const getInternProgress = async (userId, role) => {
         const [tasks] = await pool.query(`SELECT status, COUNT(*) as count FROM tasks WHERE assignee_id = ? GROUP BY status`, [intern.id]);
         let total = 0, completed = 0;
         tasks.forEach(t => {
-            total += t.count;
-            if (t.status === 'done') completed += t.count;
+            const cnt = Number(t.count);
+            total += cnt;
+            if (t.status === 'done') completed += cnt;
         });
         
         const progressScore = total === 0 ? 0 : Math.round((completed / total) * 100);
