@@ -59,7 +59,7 @@ async function seedDummyUsers() {
                         department, college, profile_picture_url, phone, bio, internship_status, 
                         theme_preference, email_verified, is_active
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ON DUPLICATE KEY UPDATE first_name=VALUES(first_name)`,
+                    ON CONFLICT (email) DO UPDATE SET first_name = EXCLUDED.first_name`,
                     [
                         uuidv4(),
                         firstName,
@@ -79,7 +79,7 @@ async function seedDummyUsers() {
                     ]
                 );
                 
-                // Fetch the ID explicitly to handle ON DUPLICATE KEY UPDATE safely
+                // Fetch the ID explicitly to handle ON CONFLICT safely
                 const [[userRow]] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
                 
                 // Track IDs for internships mapping
@@ -134,9 +134,9 @@ async function seedDummyUsers() {
 }
 
 seedDummyUsers()
-    .then(() => pool.end())
+    .then(() => pool.closePool ? pool.closePool() : process.exit(0))
     .catch((err) => {
         console.error('Seeding failed:', err);
-        pool.end();
+        if (pool.closePool) pool.closePool();
         process.exit(1);
     });

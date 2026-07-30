@@ -86,12 +86,12 @@ async function seedRoles() {
 
   for (const role of roles) {
     await pool.execute(
-      `INSERT INTO roles (name, slug, description, permissions)
-       VALUES (?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE
-         description = VALUES(description),
-         permissions = VALUES(permissions)`,
-      [role.name, role.slug, role.description, JSON.stringify(role.permissions)]
+      `INSERT INTO roles (name, description, permissions)
+       VALUES (?, ?, ?)
+       ON CONFLICT (name) DO UPDATE SET
+         description = EXCLUDED.description,
+         permissions = EXCLUDED.permissions`,
+      [role.name, role.description, JSON.stringify(role.permissions)]
     );
     console.log(`  ✅  Role "${role.name}" seeded.`);
   }
