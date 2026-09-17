@@ -10,6 +10,7 @@ import { useParams } from 'react-router-dom';
 import { MoreVert, CalendarToday, Add, Edit, Delete } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import { useSelector } from 'react-redux';
+import { setLoading } from '../../store/authSlice';
 
 const COLUMNS = [
   { id: 'todo', title: 'To Do' },
@@ -38,7 +39,21 @@ const KanbanBoard = ({ projectId: propProjectId }) => {
   const roleNormalized = userRole.toLowerCase().replace(' ', '_');
   const isStaff = ['admin', 'super_admin', 'mentor', 'placement_coordinator', 'team_lead', 'hr'].includes(roleNormalized);
   
-  const [tasks, setTasks] = useState({});
+  const  PAGE_SIZE = 5;
+  const [tasks, setTasks] = useState({
+    todo:[],in_inprogress:[],in_review:[],done:[]
+  });
+  const [columnPages, setColumnPages]= usestate({
+    todo: 1,in_inprogress: 1,in_review:1,done:1
+  });
+   const [hasMore, setHasMore]= usestate({
+    todo: true,in_inprogress: true,in_review: true,done:true
+  });
+   const [LoadingMore, setLoadingMore]= use.state({
+    todo: false,in_inprogress: false,in_review:false,done:false
+  });
+
+  const[initialLoading, setInitialLoading]= useState(true);
   const [members, setMembers] = useState([]);
   const [allProjects, setAllProjects] = useState([]);
   
@@ -67,7 +82,14 @@ const KanbanBoard = ({ projectId: propProjectId }) => {
   const [selectedTaskForMenu, setSelectedTaskForMenu] = useState(null);
 
   useEffect(() => {
-      fetchTasks();
+    const loadInitialTasks = async ()=>{
+      setInitialLoading(true);
+      
+      await Promise.all(
+        COLUMNS.map(column=> fetchColumnTasks(column.id,1))
+      );
+      setInitialLoading(false);
+    };
       if (!isGlobalTasks) {
         fetchProjectMembers(projectId);
       } else if (isStaff) {
@@ -75,22 +97,44 @@ const KanbanBoard = ({ projectId: propProjectId }) => {
       }
   }, [projectId, isGlobalTasks]);
 
-  const fetchTasks = async () => {
+  const handleColumnScroll = (event,columnId)=>{
+    const element = event.currentTarget;
+
+    const distanceFromBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
+
+    if(
+      distanceFromBottom < 150 && hasMore[columnID] && !loadingMore[columnId]){
+        const nextPage = columnPages[columnId]+ 1;
+        fetchColumnTasks(columnId,nextPage);
+      }
+  };
+
+  overflowY:'auto';
+
+  const fetchTasks = async (columnId , page = 1) => {
       try {
-          let data;
+          setLoadingMore(prev =>({
+          ...prev,[columnId]:true
+          }));
+          const params ={
+            status:columnId,page,limit:PAGE_SIZE};
+            let results;
           if (isGlobalTasks) {
-              data = isStaff ? await taskApi.getAllTasks() : await taskApi.getUserTasks();
+              results = isStaff ? await taskApi.getAllTasks(params) : await taskApi.getUserTasks(params);
           } else {
-              data = await taskApi.getProjectTasks(projectId);
+              result = await taskApi.getProjectTasks(projectId,params);
           }
-          const grouped = COLUMNS.reduce((acc, col) => ({ ...acc, [col.id]: [] }), {});
-          data.forEach(task => {
-              const statusKey = task.status;
-              if (grouped[statusKey]) {
-                  grouped[statusKey].push(task);
-              }
-          });
-          setTasks(grouped);
+          const newTasks = result?.tasks || [];
+          const pagination = result?.pagination;
+          setTasks(prev=>({
+            ...prev,[columnId]:page ===1 ? newTasks: [...prev[columnId],...newTasks]
+          }));
+          setColumnPages(prev=>({
+            ...prev,
+            columnId:page
+          }));
+          setHasMore(prev =({
+            ...prev,[columnId] : pagination?.hasMore ?? (newTasks.length === PAGE_SIZE) }));
       } catch (err) {
           console.error(err);
       }
@@ -234,6 +278,17 @@ const KanbanBoard = ({ projectId: propProjectId }) => {
       setDetailsOpen(false);
       setSelectedTaskDetails(null);
   };
+  const handleColumnScroll1 = (event,columnId)=>{
+    const element = event.currentTarget;
+
+    const distanceFromBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
+    if(distanceFromBottom < 150 && hasMore[columnId] ){
+      const nextPage = columnPages[columnId] +1;
+      fetchColumnTasks(columnId,nextPage);
+  }
+};
+const[columnTotals,setColumnTotals]= useState({
+  todo:0,inprogress:0,in_review:0,done:0});
 
   const onDragEnd = async (result) => {
     if (!result.destination) return;
@@ -306,6 +361,7 @@ const KanbanBoard = ({ projectId: propProjectId }) => {
                   <Box
                     {...provided.droppableProps}
                     ref={provided.innerRef}
+                    onScroll={(event)=> handleColumnScroll1(event,columnId)}
                     sx={{
                       flexGrow: 1,
                       minHeight: 300,
@@ -319,7 +375,7 @@ const KanbanBoard = ({ projectId: propProjectId }) => {
                     }}
                   >
                     {tasks[column.id]?.map((item, index) => (
-                      <Draggable key={item.id.toString()} draggableId={item.id.toString()} index={index}>
+                      <Draggable key={item.id} draggableId={String(item.id)} index={index}>
                         {(provided, snapshot) => (
                           <Paper
                             ref={provided.innerRef}

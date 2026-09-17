@@ -1,13 +1,13 @@
 import axiosInstance from './axiosInstance';
 
 export const taskApi = {
-  getProjectTasks: async (projectId) => {
-    const response = await axiosInstance.get(`/tasks/project/${projectId}`);
+  getProjectTasks: async (projectId,params ={}) => {
+    const response = await axiosInstance.get(`/tasks/project/${projectId}`,{params});
     return response.data.data;
   },
 
-  getAllTasks: async () => {
-    const response = await axiosInstance.get('/tasks/all');
+  getAllTasks: async (params ={}) => {
+    const response = await axiosInstance.get('/tasks/all',{params});
     return response.data.data;
   },
 
@@ -26,8 +26,8 @@ export const taskApi = {
     return response.data.data;
   },
 
-  getUserTasks: async () => {
-    const response = await axiosInstance.get('/tasks');
+  getUserTasks: async (params = {}) => {
+    const response = await axiosInstance.get('/tasks',{params});
     return response.data.data;
   }
 };

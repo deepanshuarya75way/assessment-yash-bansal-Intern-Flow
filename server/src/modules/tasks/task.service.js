@@ -48,29 +48,50 @@ export const getTaskById = async (id) => {
     return tasks[0];
 };
 
-export const getTasksByProject = async (projectId, sprintId = undefined) => {
-    let query = `
+export const getTasksByProject = async (projectId, sprintId = undefined ,status = undefined,page = 1, limit = 5) => {
+
+     const safePage = Math.max(1, Number(page) || 1);
+     const safeLimit = Math.min(5, Math.max(1, Number(limit) || 5));
+     const offset = (safePage - 1) * safeLimit;
+
+     let whereClause = `WHERE t.project_id = ?`;
+     const params1 = [projectId];
+
+     if(sprintId === null){
+        whereClause += `AND t.spring_id IS NULL`;
+     }else if(sprintId !== undefined){
+        whereClause += `AND t.sprint_id = ?`;
+        params1.push(sprintId);
+     }
+     if(status){
+        whereClause += `AND t.status = ?`;
+        params1.push(status);
+     }
+
+     const [constResult]= await pool.query(
+        `SELECT COUNT(*) as total from tasks t ${whereClause},params1`
+     );
+
+     const total = Number(countResult[0]?.total || 0);
+
+     const [tasks] = await pool.query(`
         SELECT t.*, 
                c.first_name as creator_first_name, c.last_name as creator_last_name, c.profile_picture_url as creator_avatar,
                a.first_name as assignee_first_name, a.last_name as assignee_last_name, a.profile_picture_url as assignee_avatar
         FROM tasks t
         LEFT JOIN users c ON t.reporter_id = c.id
-        LEFT JOIN users a ON t.assignee_id = a.id
-        WHERE t.project_id = ?
-    `;
-    const params = [projectId];
+        LEFT JOIN users a ON t.assignee_id = a.id${whereClause}ORDERED BY t.created_at DESC LIMIT ? OFFSET ?`,[...params1,safeLimit,offset]);
+    
 
-    if (sprintId === null) {
-        query += ` AND t.sprint_id IS NULL`;
-    } else if (sprintId !== undefined) {
-        query += ` AND t.sprint_id = ?`;
-        params.push(sprintId);
-    }
-
-    query += ` ORDER BY t.created_at DESC`;
-
-    const [tasks] = await pool.query(query, params);
-    return tasks;
+   
+    return {
+        tasks,pagination:{
+            page:safePage,
+            limit:safeLimit,
+            total,
+            hasMore:offset +tasks.length<total
+        }
+    };
 };
 
 export const updateTask = async (id, updateData) => {
@@ -112,7 +133,22 @@ export const assignTask = async (taskId, assigneeId) => {
     return getTaskById(taskId);
 };
 
-export const getTasksByUser = async (userId) => {
+export const getTasksByUser = async (userId,status= undefined,page = 1,limit = 5) => {
+    const safePage = Math.max(1, Number(page) || 1);
+     const safeLimit = Math.min(5, Math.max(1, Number(limit) || 5));
+     const offset = (safePage - 1) * safeLimit;
+
+     let whereClause = `WHERE t.assignee_id = ?`;
+     const baseParams = [userId];
+
+     if(status){
+        whereClause += `AND t.status = ?`;
+        baseParams.push(status);
+     }
+
+     const [countResult] = await pool.query(
+        `SELECT COUNT(*)   as total form task t ${whereClause}`,baseParams);
+    const total = Number(countResult[0]?.total || 0);
     const [tasks] = await pool.query(
         `SELECT t.*, 
                 c.first_name as creator_first_name, c.last_name as creator_last_name, c.profile_picture_url as creator_avatar,
@@ -123,10 +159,10 @@ export const getTasksByUser = async (userId) => {
          LEFT JOIN users a ON t.assignee_id = a.id
          LEFT JOIN projects p ON t.project_id = p.id
          WHERE t.assignee_id = ?
-         ORDER BY t.created_at DESC`,
-        [userId]
-    );
-    return tasks;
+         ORDER BY t.created_at DESC LIMIT ? OFFSET ?`,[...baseParams,safeLimit,offset]);
+    return {tasks,pagination:{
+        page: safePage,limit: safeLimit,total,hasMore: offset +tasks.length < total
+    }};
 };
 
 export const getAllTasks = async () => {

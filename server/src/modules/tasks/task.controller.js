@@ -9,19 +9,24 @@ export const createTask = asyncHandler(async (req, res) => {
 
 export const getProjectTasks = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
-    const { sprintId, backlog } = req.query;
+    const { sprintId, backlog ,status,page = 1,limit = 5} = req.query;
     
     let targetSprintId = undefined;
     if (backlog === 'true') targetSprintId = null;
     else if (sprintId) targetSprintId = sprintId;
 
-    const tasks = await taskService.getTasksByProject(req.params.projectId, targetSprintId);
+    const tasks = await taskService.getTasksByProject(req.params.projectId, targetSprintId,status,page,limit);
     ApiResponse.success(res, tasks);
 });
 
 export const getAllTasks = asyncHandler(async (req, res) => {
-    const tasks = await taskService.getAllTasks();
-    ApiResponse.success(res, tasks);
+    const {
+        status,page = 1,limit = 5
+    }=req.query;
+    const result = await taskService.getAllTasks(
+        status,page,limit
+    );
+    ApiResponse.success(res, result);
 });
 
 export const getTaskById = asyncHandler(async (req, res) => {
@@ -40,6 +45,11 @@ export const deleteTask = asyncHandler(async (req, res) => {
 });
 
 export const getUserTasks = asyncHandler(async (req, res) => {
-    const tasks = await taskService.getTasksByUser(req.user.id);
-    ApiResponse.success(res, tasks);
+    const {
+        status,page = 1,limit = 5
+    }=req.query;
+    const result = await taskService.getTasksByUser(
+        req.user.id,status,page,limit
+    );
+    ApiResponse.success(res, result);
 });
